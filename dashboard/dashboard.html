@@ -411,9 +411,6 @@ footer {
 <script>
 const PHASES = ['plan', 'design', 'cast', 'loop', 'align', 'wrap'];
 const PHASE_LABELS = { plan:'PLAN', design:'DESIGN', cast:'CAST', loop:'LOOP', align:'ALIGN', wrap:'WRAP' };
-const POLL_MS = 2000;
-
-let lastPollTime = null;
 
 // ── Renderers ──────────────────────────────────────────────
 
@@ -635,15 +632,7 @@ document.getElementById('themeToggle').onclick = () => {
   document.getElementById('themeToggle').textContent = next === 'light' ? '☀️' : '🌙';
 };
 
-// ── Polling ────────────────────────────────────────────────
-
-function updateTick() {
-  if (!lastPollTime) return;
-  const secs = Math.round((Date.now() - lastPollTime) / 1000);
-  if (secs > 1) {
-    document.getElementById('lastUpdated').textContent = `마지막 갱신: ${secs}초 전`;
-  }
-}
+// ── Fetch & Render ─────────────────────────────────────────
 
 async function poll() {
   try {
@@ -660,16 +649,26 @@ async function poll() {
     renderHistoryPanel(data.history ? (data.history.items || []) : []);
     renderTeamPanel(data.memory.team);
 
-    lastPollTime = Date.now();
     document.getElementById('lastUpdated').textContent = '마지막 갱신: 방금';
   } catch (e) {
-    document.getElementById('lastUpdated').textContent = `⚠️ 연결 오류`;
+    document.getElementById('lastUpdated').textContent = '⚠️ 연결 오류';
   }
 }
 
+// ── SSE ────────────────────────────────────────────────────
+
+function connectSSE() {
+  const es = new EventSource('/api/events');
+  es.onmessage = () => poll();
+  es.onerror   = () => {
+    es.close();
+    document.getElementById('lastUpdated').textContent = '⚠️ 연결 끊김 — 재연결 중...';
+    setTimeout(connectSSE, 3000);
+  };
+}
+
 poll();
-setInterval(poll,       POLL_MS);
-setInterval(updateTick, 1000);
+connectSSE();
 </script>
 </body>
 </html>

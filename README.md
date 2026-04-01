@@ -205,3 +205,5 @@ c:/Develop/COAT/
 | v1.0.0 | 2026-03-31 | 최초 릴리즈 |
 | v2.0.0 | 2026-03-31 | COAT Web Dashboard (진행 현황 시각화) |
 | v1.1.0 | 2026-04-01 | GitHub 연동 (Issue / Branch / PR 자동화) |
+| v1.2.0 | 2026-04-02 | 테마 토글, _INDEX.md 자동 생성, history round 필드 |
+| v1.3.0 | 2026-04-02 | /coat next 자동 실행, 대시보드 SSE 전환, wrap README 업데이트 |
