@@ -1,7 +1,8 @@
 # COAT — 최현우's Agent Team
 
-> **버전**: v0.2.0 (설계 확정)
+> **버전**: v2.0.0
 > **작성일**: 2026-03-31
+> **최종 수정**: 2026-04-02
 > **작성자**: 최현우
 
 ---
@@ -293,11 +294,11 @@ P3  → 선택 목록으로 표시
 ### 8-2. 단계별 자동화
 
 ```
-PLAN  → Issue 자동 생성
+PLAN  → Issue 자동 생성 (auto_issue = true 시)
           라벨: coat:plan
           포맷: ## 핵심 목표 / ## 주요 변경사항 / ## 상세
 
-CAST  → Branch 자동 생성
+CAST  → Branch 자동 생성 (auto_branch = true 시)
           이름: coat/{기능명}/{날짜}
 
 LOOP  → Commit 사용자 요청 시만
@@ -305,14 +306,17 @@ LOOP  → Commit 사용자 요청 시만
                   - {세부1}
                   - {세부2}
 
-WRAP  → PR 자동 생성
+WRAP  → PR 자동 생성 (auto_pr = true 시)
           포맷: ## 완료된 것 / ## 변경 내역 / ## 백로그
           라벨: coat:wrap
-        → 백로그 Issue 자동 등록
-          P1*: coat:p1*
+        → 백로그 Issue 자동 등록 (auto_issue = true 시)
+          P1*: coat:p1-star
           P2:  coat:p2
           P3:  coat:p3
+          (P1은 다음 PLAN에서 사용자 결정 — Issue 생성 안 함)
 ```
+
+**라벨 자동 생성:** 라벨이 없으면 `gh label create`로 자동 생성 후 진행.
 
 ### 8-3. 설정
 
@@ -338,15 +342,81 @@ WRAP  → PR 자동 생성
 └── .coat/
     ├── config.json           ← GitHub 연동 등 설정
     ├── state/
-    │   ├── memory.json       ← 현재 단계, 에이전트 정보
-    │   └── backlog.json      ← P1*/P1/P2/P3 목록
+    │   ├── memory.json       ← 현재 단계, 팀, Match Rate, 체크리스트
+    │   ├── backlog.json      ← P1*/P1/P2/P3 목록
+    │   └── history.json      ← 완료된 기능 목록 (WRAP마다 추가)
     ├── snapshots/
     │   ├── round-3.md        ← 기획자 스냅샷
     │   ├── round-6.md        ← 검증자 스냅샷
     │   └── ...
     └── audit/
-        ├── YYYY-MM-DD.jsonl  ← 액션 로그
         └── p1-records/
             ├── {이슈명}-{날짜}.md
             └── _INDEX.md
 ```
+
+**`history.json` 스키마:**
+
+```json
+{
+  "items": [
+    {
+      "feature": "기능명",
+      "completedAt": "YYYY-MM-DD",
+      "matchRate": { "기능": 97, "UX": 85, "속도": 80 },
+      "backlog": { "p1star": 0, "p1": 1, "p2": 2, "p3": 1 }
+    }
+  ]
+}
+```
+
+---
+
+## 10. Web Dashboard (v2.0.0)
+
+COAT 진행 현황을 실시간으로 시각화하는 로컬 웹 대시보드.
+
+### 10-1. 실행
+
+```bash
+# 저장소 루트에서
+npm run dashboard -- --project /path/to/your/project
+
+# --project 생략 시 현재 디렉토리 기준
+npm run dashboard
+```
+
+> http://localhost:3030 에서 접근
+
+### 10-2. 구성 요소
+
+| 패널 | 표시 내용 |
+|------|----------|
+| Phase Bar | 6단계 진행 상태 (완료/현재/미래) |
+| LOOP 진행 | 현재 라운드 + 기능/UX/속도 게이지 |
+| 체크리스트 | 완료/미완료 항목 |
+| 백로그 | P1*/P1/P2/P3 목록 |
+| 스냅샷 | 라운드별 스냅샷 (클릭 시 전문 보기) |
+| 완료 히스토리 | WRAP 완료된 기능 목록 + Match Rate |
+
+### 10-3. 기술 구성
+
+```
+dashboard/
+├── server.js       ← Node.js HTTP 서버 (npm 의존성 없음)
+└── dashboard.html  ← 단일 HTML 파일 (폴링 방식, 2초 간격)
+```
+
+- `.coat/` 디렉토리를 직접 읽어 API 제공 (`/api/state`, `/api/snapshot/{name}`)
+- 외부 의존성 없음 — Node.js 기본 모듈만 사용
+
+---
+
+## 버전 히스토리
+
+| 버전 | 날짜 | 주요 변경 |
+|------|------|----------|
+| v0.1.0 | 2026-03-31 | 최초 설계 (6단계 사이클, 팀 구성 알고리즘) |
+| v0.2.0 | 2026-03-31 | 미니 COAT, WRAP 백로그 분류, P1* 기록 체계 |
+| v2.0.0 | 2026-04-01 | Web Dashboard, history.json, 체크리스트 필드 추가 |
+| v2.1.0 | 2026-04-02 | auto_issue/auto_branch/auto_pr 플래그 동작 명시, 라벨 자동 생성 |
