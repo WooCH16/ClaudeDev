@@ -85,10 +85,12 @@ mkdir -p .coat/state .coat/snapshots .coat/audit/p1-records && curl -L https://r
 ```bash
 git clone https://github.com/WooCH16/ClaudeDev.git
 cd ClaudeDev
-npm run dashboard
+npm run dashboard -- --project /path/to/your/project
 ```
 
 > http://localhost:3030
+>
+> `--project` 생략 시 현재 디렉토리 기준
 
 ---
 

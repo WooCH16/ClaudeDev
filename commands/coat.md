@@ -20,7 +20,7 @@ argument-hint: "plan|design|cast|loop|align|wrap|status|next|snapshot|team|histo
 # COAT Skill
 
 > 최현우's Agent Team — 개인 개발 방법론 통합 스킬
-> **Spec Reference**: `c:/Develop/COAT/docs/coat-spec.md`
+> **Spec Reference**: https://github.com/WooCH16/ClaudeDev/blob/master/docs/coat-spec.md
 
 ## Arguments
 

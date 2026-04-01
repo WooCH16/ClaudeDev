@@ -6,8 +6,16 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const PORT = 3030;
-const ROOT = path.join(__dirname, '..');
-const COAT_DIR = path.join(ROOT, '.coat');
+
+// --project 인자로 프로젝트 경로 지정 가능
+// 예: node server.js --project /path/to/myproject
+// 미지정 시 현재 작업 디렉토리 기준
+const projectArgIdx = process.argv.indexOf('--project');
+const PROJECT_ROOT = projectArgIdx !== -1
+  ? path.resolve(process.argv[projectArgIdx + 1])
+  : process.cwd();
+
+const COAT_DIR = path.join(PROJECT_ROOT, '.coat');
 const HTML_FILE = path.join(__dirname, 'dashboard.html');
 
 function readJSON(filePath, fallback) {
