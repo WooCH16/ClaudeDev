@@ -48,36 +48,39 @@ PLAN → DESIGN → CAST → LOOP → ALIGN → WRAP
 
 ## 설치
 
-### 1. Claude Code 플러그인 등록
+### 1. COAT 스킬 설치 (cmd 한 줄)
 
-```bash
-# COAT 플러그인 경로를 Claude Code에 등록
-# Claude Code settings → plugins → add
-c:/Develop/COAT/plugin
+**Windows:**
+```cmd
+curl -L https://raw.githubusercontent.com/WooCH16/ClaudeDev/master/commands/coat.md -o "%USERPROFILE%\.claude\commands\coat.md"
 ```
 
-### 2. 프로젝트 초기화
-
+**Mac/Linux:**
 ```bash
-# 개발 프로젝트 루트에서 실행
-mkdir .coat
-mkdir .coat/state
-mkdir .coat/snapshots
-mkdir .coat/audit
-mkdir .coat/audit/p1-records
+curl -L https://raw.githubusercontent.com/WooCH16/ClaudeDev/master/commands/coat.md -o ~/.claude/commands/coat.md
 ```
 
-### 3. config.json 생성
+Claude Code를 재시작하면 `/coat` 명령어가 활성화됩니다.
 
-```bash
-# .coat/config.json 복사
-cp c:/Develop/COAT/plugin/skills/coat/schemas/config.json .coat/config.json
+---
+
+### 2. 프로젝트 초기화 (개발 프로젝트 루트에서)
+
+**Windows:**
+```cmd
+mkdir .coat\state && mkdir .coat\snapshots && mkdir .coat\audit\p1-records && curl -L https://raw.githubusercontent.com/WooCH16/ClaudeDev/master/plugin/skills/coat/schemas/config.json -o .coat\config.json
 ```
 
-### 4. 대시보드 실행
+**Mac/Linux:**
+```bash
+mkdir -p .coat/state .coat/snapshots .coat/audit/p1-records && curl -L https://raw.githubusercontent.com/WooCH16/ClaudeDev/master/plugin/skills/coat/schemas/config.json -o .coat/config.json
+```
+
+### 3. 대시보드 실행 (선택)
 
 ```bash
-cd c:/Develop/COAT
+git clone https://github.com/WooCH16/ClaudeDev.git
+cd ClaudeDev
 npm run dashboard
 # → http://localhost:3030
 ```
