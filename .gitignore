@@ -1,0 +1,13 @@
+# COAT 런타임 상태 (프로젝트별 생성됨)
+.coat/state/
+.coat/snapshots/
+.coat/audit/
+
+# 다른 플러그인 상태
+.bkit/
+
+# Claude 로컬 설정
+.claude/
+
+# Node
+node_modules/
