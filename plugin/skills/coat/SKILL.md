@@ -62,8 +62,9 @@ argument-hint: "plan|design|cast|loop|align|wrap|status|next|snapshot|team|histo
    "PLAN 완료됐습니다. DESIGN으로 넘어갈까요?"
    [다음 단계] [중단] [추가 입력 → 텍스트]
    ```
-5. GitHub 연동 ON 시:
-   - `.coat/config.json` 읽기 → `github.enabled`, `github.repo` 확인
+5. GitHub 연동 ON + `auto_issue = true` 시:
+   - `.coat/config.json` 읽기 → `github.enabled`, `github.repo`, `auto_issue` 확인
+   - `auto_issue = false` 이면 스킵
    - `github.repo`가 비어있으면 → "repo를 입력해주세요:" → 입력받아 저장
    - Bash: `gh issue create --repo {github.repo} --title "[COAT] {기능명} — PLAN" --body "## 핵심 목표\n{핵심목표}\n\n## 요구사항\n{요구사항목록}" --label "coat:plan"`
    - 성공: "Issue 생성됨: {URL}" / 실패: "⚠️ Issue 생성 실패 — 수동으로 생성해주세요."
@@ -123,8 +124,9 @@ Step 3. 기획자 최종 확정 (최대 2명)
    "이 팀 구성으로 시작할까요?"
    [다음 단계] [중단] [추가 입력 → 텍스트]
    ```
-3. GitHub 연동 ON 시:
-   - `.coat/config.json` 읽기 → `github.enabled`, `github.repo` 확인
+3. GitHub 연동 ON + `auto_branch = true` 시:
+   - `.coat/config.json` 읽기 → `github.enabled`, `auto_branch` 확인
+   - `auto_branch = false` 이면 스킵
    - Bash: `git checkout -b coat/{기능명}/{YYYY-MM-DD}`
    - 성공: "브랜치 생성됨: coat/{기능명}/{YYYY-MM-DD}" / 실패: "⚠️ 브랜치 생성 실패 — 수동으로 생성해주세요."
 4. `.coat/state/memory.json` 업데이트: phase = "cast", team 정보
@@ -206,10 +208,12 @@ WRAP에 "⚠️ 조건부 통과" 표시
    P3:  기획자 "나중에" 표시 항목
    ```
 2. `.coat/state/backlog.json` 저장
-3. GitHub 연동 ON 시:
-   - `.coat/config.json` 읽기 → `github.enabled`, `github.repo` 확인
+3. GitHub 연동 ON + `auto_pr = true` 시:
+   - `.coat/config.json` 읽기 → `github.enabled`, `github.repo`, `auto_pr`, `auto_issue` 확인
+   - `auto_pr = false` 이면 PR 생성 스킵
    - Bash: `gh pr create --repo {github.repo} --title "[COAT] {기능명}" --body "## 완료된 것\n{체크리스트 완료 항목}\n\n## 최종 Match Rate\n기능: {N}% · UX: {N}% · 속도: {N}%\n\n## 백로그\n{P1*/P1/P2/P3 목록}" --label "coat:wrap"`
    - 성공: "PR 생성됨: {URL}" / 실패: "⚠️ PR 생성 실패 — 수동으로 생성해주세요."
+   - `auto_issue = false` 이면 백로그 Issue 생성 스킵
    - 백로그 items 순회:
      - P1* → `gh issue create --repo {repo} --title "[COAT-P1*] {title}" --body "{description}" --label "coat:p1-star"`
      - P2  → `gh issue create --repo {repo} --title "[COAT-P2] {title}"  --body "{description}" --label "coat:p2"`

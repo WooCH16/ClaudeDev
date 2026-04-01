@@ -232,6 +232,29 @@ header {
   border-radius: 10px;
 }
 
+/* ── History Panel ───────────────────────── */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-item:last-child { border-bottom: none; }
+.history-feature { font-size: 14px; font-weight: 600; flex: 0 0 140px; }
+.history-date    { font-size: 12px; color: var(--muted); flex: 0 0 90px; }
+.history-rates   { display: flex; gap: 8px; flex: 1; }
+.history-rate {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.history-rate.met   { background: rgba(34,197,94,0.1);  color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+.history-rate.unmet { background: rgba(239,68,68,0.1);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.history-backlog  { font-size: 11px; color: var(--muted); flex: 0 0 auto; }
+.history-panel    { margin-bottom: 14px; }
+
 /* ── Footer ──────────────────────────────── */
 footer {
   display: flex;
@@ -328,6 +351,11 @@ footer {
     <h2>스냅샷 히스토리</h2>
     <div id="snapshotContent"></div>
   </div>
+</div>
+
+<div class="panel history-panel" id="historyPanel">
+  <h2>완료 히스토리</h2>
+  <div id="historyContent"></div>
 </div>
 
 <footer>
@@ -506,6 +534,38 @@ function renderTeamPanel(team) {
   el.innerHTML = badges.join('');
 }
 
+function renderHistoryPanel(items) {
+  const el = document.getElementById('historyContent');
+  if (!items || !items.length) {
+    el.innerHTML = '<p class="panel-empty">완료된 기능 없음</p>';
+    return;
+  }
+  el.innerHTML = [...items].reverse().map(item => {
+    const mr = item.matchRate || {};
+    const rates = [
+      { label: `기능 ${mr['기능'] || 0}%`, met: (mr['기능'] || 0) >= 97 },
+      { label: `UX ${mr['UX'] || 0}%`,     met: (mr['UX']   || 0) >= 85 },
+      { label: `속도 ${mr['속도'] || 0}%`, met: (mr['속도'] || 0) >= 80 },
+    ];
+    const bl = item.backlog || {};
+    const blText = [
+      bl.p1star ? `P1* ${bl.p1star}` : '',
+      bl.p1     ? `P1 ${bl.p1}`      : '',
+      bl.p2     ? `P2 ${bl.p2}`      : '',
+      bl.p3     ? `P3 ${bl.p3}`      : '',
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="history-item">
+        <span class="history-feature">${item.feature}</span>
+        <span class="history-date">${item.completedAt || ''}</span>
+        <div class="history-rates">
+          ${rates.map(r => `<span class="history-rate ${r.met ? 'met' : 'unmet'}">${r.label}</span>`).join('')}
+        </div>
+        <span class="history-backlog">${blText || '백로그 없음'}</span>
+      </div>`;
+  }).join('');
+}
+
 // ── Modal ──────────────────────────────────────────────────
 
 async function openSnapshot(name) {
@@ -549,6 +609,7 @@ async function poll() {
     renderChecklistPanel(data.memory.checklist || []);
     renderBacklogPanel(data.backlog ? (data.backlog.items || []) : []);
     renderSnapshotPanel(data.snapshots || []);
+    renderHistoryPanel(data.history ? (data.history.items || []) : []);
     renderTeamPanel(data.memory.team);
 
     lastPollTime = Date.now();
