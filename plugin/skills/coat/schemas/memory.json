@@ -1,0 +1,32 @@
+{
+  "feature": "소셜로그인",
+  "phase": "loop",
+  "round": 7,
+  "startedAt": "2026-03-31T09:00:00.000Z",
+  "team": {
+    "base": ["기획자", "개발자", "검증자"],
+    "dynamic": ["통합전문가"],
+    "security": false
+  },
+  "matchRate": {
+    "기능": 84,
+    "UX": 78,
+    "속도": 75
+  },
+  "alignFailCount": 0,
+  "checkpoints": [6, 12, 18],
+  "lastCheckpoint": 6,
+  "condionalPass": false,
+  "checklist": [
+    { "label": "OAuth 엔드포인트 구현", "done": true },
+    { "label": "토큰 저장 로직", "done": true },
+    { "label": "로그인 성공 리디렉션", "done": true },
+    { "label": "토큰 갱신 처리", "done": false },
+    { "label": "에러 메시지 UX", "done": false }
+  ],
+  "sessionCount": 3,
+  "lastSession": {
+    "startedAt": "2026-03-31T09:00:00.000Z",
+    "platform": "claude"
+  }
+}

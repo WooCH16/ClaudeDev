@@ -1,0 +1,11 @@
+{
+  "sessionCount": 26,
+  "lastSession": {
+    "startedAt": "2026-03-31T14:22:19.764Z",
+    "platform": "claude",
+    "level": "Starter"
+  },
+  "feature": "desktop-pet",
+  "phase": "archived",
+  "matchRate": 95
+}

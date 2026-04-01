@@ -1,0 +1,42 @@
+{
+  "feature": "소셜로그인",
+  "updatedAt": "2026-03-31T09:00:00.000Z",
+  "items": [
+    {
+      "id": "backlog-001",
+      "grade": "p1*",
+      "title": "토큰 갱신 처리",
+      "description": "ALIGN 3회 실패 후 조건부 통과 이월",
+      "source": "ALIGN 실패",
+      "createdAt": "2026-03-31T09:00:00.000Z",
+      "miniCoat": false
+    },
+    {
+      "id": "backlog-002",
+      "grade": "p1",
+      "title": "에러 메시지 UX",
+      "description": "LOOP 미해결 잔여 이슈",
+      "source": "검증자 리포트",
+      "createdAt": "2026-03-31T09:00:00.000Z",
+      "miniCoat": false
+    },
+    {
+      "id": "backlog-003",
+      "grade": "p2",
+      "title": "로딩 스피너 개선",
+      "description": "검증자 아쉬움 표시",
+      "source": "검증자 리포트",
+      "createdAt": "2026-03-31T09:00:00.000Z",
+      "miniCoat": false
+    },
+    {
+      "id": "backlog-004",
+      "grade": "p3",
+      "title": "애플 로그인 추가",
+      "description": "기획자 나중에 표시",
+      "source": "기획자 판단",
+      "createdAt": "2026-03-31T09:00:00.000Z",
+      "miniCoat": false
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "github": {
+    "enabled": true,
+    "repo": "WooCH16/ClaudeDev",
+    "auto_issue": true,
+    "auto_branch": true,
+    "auto_pr": true
+  }
+}

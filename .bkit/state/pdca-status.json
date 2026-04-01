@@ -1,0 +1,664 @@
+{
+  "version": "3.0",
+  "lastUpdated": "2026-03-31T14:38:28.378Z",
+  "activeFeatures": [
+    "desktop-pet",
+    "Core",
+    "Pet",
+    "UI",
+    "Editor",
+    "dashboard",
+    "startup"
+  ],
+  "primaryFeature": "desktop-pet",
+  "features": {
+    "desktop-pet": {
+      "phase": "do",
+      "status": "completed",
+      "planDoc": "docs/01-plan/features/desktop-pet.plan.md",
+      "designDoc": "docs/02-design/features/desktop-pet.design.md",
+      "createdAt": "2026-03-21T00:00:00.000Z",
+      "updatedAt": "2026-03-21T00:00:00.000Z"
+    },
+    "Core": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T10:23:50.433Z",
+        "lastUpdated": "2026-03-21T15:03:06.137Z"
+      },
+      "lastFile": "c:/Program/DesktopPet/DesktopPet/Assets/Scripts/Core/WindowConfig.cs"
+    },
+    "Pet": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T10:24:20.866Z",
+        "lastUpdated": "2026-03-21T13:31:05.035Z"
+      },
+      "lastFile": "c:\\Program\\DesktopPet\\DesktopPet\\Assets\\Scripts\\Pet\\MovementAI.cs"
+    },
+    "UI": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T10:25:01.564Z",
+        "lastUpdated": "2026-03-21T12:35:58.941Z"
+      },
+      "lastFile": "c:/Program/DesktopPet/DesktopPet/Assets/Scripts/UI/WalkModeManager.cs"
+    },
+    "Editor": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T10:50:44.572Z",
+        "lastUpdated": "2026-03-21T12:38:12.613Z"
+      },
+      "lastFile": "c:/Program/DesktopPet/DesktopPet/Assets/Editor/SceneSetupTool.cs"
+    },
+    "dashboard": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-31T14:32:28.427Z",
+        "lastUpdated": "2026-03-31T14:32:28.427Z"
+      },
+      "lastFile": "c:\\Develop\\COAT\\dashboard\\server.js"
+    },
+    "startup": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-31T14:38:09.529Z",
+        "lastUpdated": "2026-03-31T14:38:28.377Z"
+      },
+      "lastFile": "C:\\Users\\samsung\\.claude\\plugins\\cache\\bkit-marketplace\\bkit\\2.0.0\\hooks\\startup\\session-context.js"
+    }
+  },
+  "pipeline": {
+    "currentPhase": 1,
+    "level": "Dynamic",
+    "phaseHistory": []
+  },
+  "session": {
+    "startedAt": "2026-03-21T09:49:56.741Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-03-31T14:38:28.378Z"
+  },
+  "history": [
+    {
+      "timestamp": "2026-03-21T10:23:50.433Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:24:09.632Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:24:20.866Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:24:36.852Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:24:51.919Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:25:01.564Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:25:23.190Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:50:44.572Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:55:15.144Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T10:56:54.786Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:07:03.021Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:08:48.749Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:09:50.851Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:12:22.061Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:22:19.700Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:29:18.667Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:36:49.586Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:38:59.767Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:49:19.631Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:55:59.526Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:56:15.352Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:56:19.424Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:56:29.690Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T11:56:37.251Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:00:13.294Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:00:18.925Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:06:11.076Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:08:59.401Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:09:06.515Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:09:13.679Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:15:32.316Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:15:46.067Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:15:53.232Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:20:56.157Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:21:01.361Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:22:46.111Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:22:56.931Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:23:04.441Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:27:24.138Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:27:36.617Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:28:02.005Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:35:40.403Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:35:45.144Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:35:50.975Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:35:58.941Z",
+      "feature": "UI",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:36:08.003Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:36:16.877Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:36:25.267Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:36:36.408Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:38:12.613Z",
+      "feature": "Editor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:16.842Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:31.361Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:38.098Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:43.981Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:51.736Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:43:56.415Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:44:01.946Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:47:45.128Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:51:48.527Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T12:53:06.690Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:00:59.112Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:04:06.114Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:04:13.101Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:04:20.151Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:04:32.056Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:10:14.639Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:15:48.889Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:20:35.597Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:21:40.651Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:21:48.480Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:30:54.872Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:31:05.035Z",
+      "feature": "Pet",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T13:54:25.144Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:01:38.336Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:08:09.005Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:12:51.293Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:16:28.027Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:16:58.288Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:34:25.977Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:34:36.617Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:41:43.125Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:52:16.976Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:52:33.266Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:56:56.135Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T14:57:11.686Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T15:03:06.137Z",
+      "feature": "Core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-31T14:32:28.427Z",
+      "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-31T14:38:09.529Z",
+      "feature": "startup",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-31T14:38:28.377Z",
+      "feature": "startup",
+      "phase": "do",
+      "action": "updated"
+    }
+  ],
+  "stateMachine": {
+    "defaultWorkflow": "default",
+    "activeWorkflows": {},
+    "totalTransitions": 0
+  },
+  "automation": {
+    "globalLevel": 2,
+    "trustScore": 40,
+    "pendingApprovals": 0,
+    "lastGateResult": null
+  },
+  "team": {
+    "enabled": true,
+    "stateFile": ".bkit/runtime/agent-state.json",
+    "eventsFile": ".bkit/runtime/agent-events.jsonl"
+  }
+}

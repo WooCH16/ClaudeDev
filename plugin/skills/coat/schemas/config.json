@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "github": {
+    "enabled": false,
+    "repo": "",
+    "auto_issue": true,
+    "auto_branch": true,
+    "auto_pr": true
+  },
+  "align": {
+    "기능": 97,
+    "UX": 85,
+    "속도": 80
+  },
+  "loop": {
+    "minRounds": 12,
+    "stableRounds": 3
+  },
+  "snapshot": {
+    "interval": 3,
+    "checkpoint": 6
+  }
+}

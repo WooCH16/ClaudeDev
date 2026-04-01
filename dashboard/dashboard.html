@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COAT Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --gauge-fn: #3b82f6;
+  --gauge-ux: #a855f7;
+  --gauge-spd: #22c55e;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+/* ── Header ─────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+.feature-name { font-size: 17px; color: var(--muted); font-weight: 500; }
+
+.gh-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.gh-on  { background: #14532d; color: #86efac; border: 1px solid #166534; }
+.gh-off { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+/* ── Phase Bar ───────────────────────────── */
+.phase-bar {
+  display: flex;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  margin-bottom: 14px;
+  gap: 0;
+}
+.phase-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.phase-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  min-width: 12px;
+}
+.phase-dot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.phase-dot.done    { background: var(--success); color: #fff; }
+.phase-dot.current { background: var(--accent);  color: #fff; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
+.phase-dot.future  { background: var(--border);  color: var(--muted); }
+
+.phase-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; }
+.phase-label.done    { color: var(--success); }
+.phase-label.current { color: var(--accent); }
+.phase-label.future  { color: var(--muted); }
+
+/* ── Grid ────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* ── Panel ───────────────────────────────── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.panel h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* ── Loop Panel ──────────────────────────── */
+.round-display {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+.round-num    { font-size: 52px; font-weight: 800; color: var(--accent); line-height: 1; }
+.round-sep    { font-size: 26px; color: var(--muted); }
+.round-target { font-size: 30px; color: var(--muted); }
+.round-label  { font-size: 13px; color: var(--muted); margin-left: 4px; align-self: flex-end; padding-bottom: 6px; }
+
+.gauge-item { margin-bottom: 14px; }
+.gauge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+}
+.gauge-name   { font-size: 13px; font-weight: 600; }
+.gauge-meta   { display: flex; align-items: baseline; gap: 8px; }
+.gauge-pct    { font-size: 17px; font-weight: 700; }
+.gauge-target-label { font-size: 11px; color: var(--muted); }
+
+.gauge-track {
+  position: relative;
+  background: var(--border);
+  border-radius: 4px;
+  height: 10px;
+  overflow: visible;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.gauge-target-line {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  border-radius: 1px;
+  opacity: 0.75;
+}
+
+.align-fail {
+  margin-top: 14px;
+  padding: 8px 12px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #fca5a5;
+}
+
+/* ── Checklist Panel ─────────────────────── */
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.checklist-item:last-child { border-bottom: none; }
+.check-icon  { font-size: 15px; flex-shrink: 0; }
+.check-label { font-size: 13px; }
+.check-label.done { color: var(--muted); text-decoration: line-through; }
+
+/* ── Backlog Panel ───────────────────────── */
+.backlog-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.backlog-item:last-child { border-bottom: none; }
+
+.grade-badge {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.grade-p1star { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+.grade-p1     { background: rgba(249,115,22,0.12); color: #fdba74; border: 1px solid rgba(249,115,22,0.35); }
+.grade-p2     { background: rgba(234,179,8,0.12);  color: #fde047; border: 1px solid rgba(234,179,8,0.35); }
+.grade-p3     { background: rgba(100,116,139,0.12); color: #94a3b8; border: 1px solid rgba(100,116,139,0.35); }
+
+.backlog-title { font-size: 13px; font-weight: 500; }
+.backlog-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.panel-empty   { color: var(--muted); font-size: 13px; padding: 10px 0; }
+
+/* ── Snapshot Panel ──────────────────────── */
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+.snapshot-item:hover { background: rgba(59,130,246,0.1); }
+.snapshot-icon { font-size: 15px; }
+.snapshot-name { font-size: 13px; flex: 1; }
+.snapshot-type {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ── Footer ──────────────────────────────── */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+}
+.team-label { font-size: 11px; color: var(--muted); margin-right: 8px; }
+.team-list { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.team-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.team-base     { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.team-dynamic  { background: rgba(168,85,247,0.12); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+.team-security { background: rgba(239,68,68,0.12);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.last-updated  { font-size: 12px; color: var(--muted); }
+
+/* ── Modal ───────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 14px; font-weight: 600; }
+.modal-close {
+  background: none; border: none;
+  color: var(--muted); font-size: 20px;
+  cursor: pointer; line-height: 1; padding: 0 4px;
+}
+.modal-close:hover { color: var(--text); }
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="logo">🧥 COAT</span>
+    <span class="feature-name" id="featureName">-</span>
+  </div>
+  <div id="githubStatus"></div>
+</header>
+
+<div class="phase-bar" id="phaseBar"></div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>LOOP 진행</h2>
+    <div id="loopContent"></div>
+  </div>
+  <div class="panel">
+    <h2>체크리스트</h2>
+    <div id="checklistContent"></div>
+  </div>
+  <div class="panel">
+    <h2>백로그</h2>
+    <div id="backlogContent"></div>
+  </div>
+  <div class="panel">
+    <h2>스냅샷 히스토리</h2>
+    <div id="snapshotContent"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="team-list">
+    <span class="team-label">팀</span>
+    <div id="teamBadges"></div>
+  </div>
+  <div class="last-updated" id="lastUpdated">연결 중...</div>
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle"></span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <pre class="modal-body" id="modalBody"></pre>
+  </div>
+</div>
+
+<script>
+const PHASES = ['plan', 'design', 'cast', 'loop', 'align', 'wrap'];
+const PHASE_LABELS = { plan:'PLAN', design:'DESIGN', cast:'CAST', loop:'LOOP', align:'ALIGN', wrap:'WRAP' };
+const POLL_MS = 2000;
+
+let lastPollTime = null;
+
+// ── Renderers ──────────────────────────────────────────────
+
+function renderHeader(memory, github) {
+  document.getElementById('featureName').textContent = memory.feature || '-';
+  const el = document.getElementById('githubStatus');
+  if (github && github.enabled) {
+    const repo = github.repo ? ` (${github.repo})` : '';
+    el.innerHTML = `<span class="gh-badge gh-on">● GitHub ON${repo}</span>`;
+  } else {
+    el.innerHTML = `<span class="gh-badge gh-off">GitHub OFF</span>`;
+  }
+}
+
+function renderPhaseBar(currentPhase) {
+  const currentIdx = PHASES.indexOf(currentPhase);
+  const el = document.getElementById('phaseBar');
+  const parts = [];
+  PHASES.forEach((p, i) => {
+    const state = i < currentIdx ? 'done' : i === currentIdx ? 'current' : 'future';
+    const icon  = state === 'done' ? '✓' : (i + 1);
+    parts.push(`
+      <div class="phase-item">
+        <div class="phase-dot ${state}">${icon}</div>
+        <span class="phase-label ${state}">${PHASE_LABELS[p]}</span>
+      </div>`);
+    if (i < PHASES.length - 1) {
+      parts.push(`<div class="phase-connector"></div>`);
+    }
+  });
+  el.innerHTML = parts.join('');
+}
+
+function renderLoopPanel(memory) {
+  const round     = memory.round || 0;
+  const mr        = memory.matchRate || {};
+  const alignFail = memory.alignFailCount || 0;
+
+  const gauges = [
+    { name: '기능', key: '기능', color: 'var(--gauge-fn)', target: 97 },
+    { name: 'UX',   key: 'UX',   color: 'var(--gauge-ux)', target: 85 },
+    { name: '속도', key: '속도', color: 'var(--gauge-spd)', target: 80 },
+  ];
+
+  const gaugesHtml = gauges.map(g => {
+    const pct = mr[g.key] || 0;
+    const met = pct >= g.target;
+    const pctColor = met
+      ? 'var(--success)'
+      : pct >= g.target * 0.85 ? 'var(--warning)' : 'var(--text)';
+    return `
+      <div class="gauge-item">
+        <div class="gauge-header">
+          <span class="gauge-name">${g.name}</span>
+          <div class="gauge-meta">
+            <span class="gauge-pct" style="color:${pctColor}">${pct}%</span>
+            <span class="gauge-target-label">목표 ${g.target}%</span>
+          </div>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:${Math.min(pct,100)}%; background:${g.color}"></div>
+          <div class="gauge-target-line" style="left:${g.target}%; background:${g.color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const alignHtml = alignFail > 0
+    ? `<div class="align-fail">⚠️ ALIGN 실패 ${alignFail}회${alignFail >= 3 ? ' — 사용자 개입 필요' : ''}</div>`
+    : '';
+
+  document.getElementById('loopContent').innerHTML = `
+    <div class="round-display">
+      <span class="round-num">${round}</span>
+      <span class="round-sep">/</span>
+      <span class="round-target">12+</span>
+      <span class="round-label">라운드</span>
+    </div>
+    ${gaugesHtml}
+    ${alignHtml}`;
+}
+
+function renderChecklistPanel(items) {
+  const el = document.getElementById('checklistContent');
+  if (!items.length) {
+    el.innerHTML = '<p class="panel-empty">체크리스트 없음</p>';
+    return;
+  }
+  const done  = items.filter(i => i.done).length;
+  const total = items.length;
+  el.innerHTML =
+    `<p style="font-size:12px;color:var(--muted);margin-bottom:10px">${done} / ${total} 완료</p>` +
+    items.map(item => `
+      <div class="checklist-item">
+        <span class="check-icon">${item.done ? '✅' : '⬜'}</span>
+        <span class="check-label ${item.done ? 'done' : ''}">${item.label}</span>
+      </div>`).join('');
+}
+
+function renderBacklogPanel(items) {
+  const el = document.getElementById('backlogContent');
+  if (!items.length) {
+    el.innerHTML = '<p class="panel-empty">백로그 없음 ✨</p>';
+    return;
+  }
+  const gradeOrder = ['p1*', 'p1', 'p2', 'p3'];
+  const sorted = [...items].sort(
+    (a, b) => gradeOrder.indexOf(a.grade) - gradeOrder.indexOf(b.grade)
+  );
+  el.innerHTML = sorted.map(item => {
+    const cls  = 'grade-' + item.grade.replace('*', 'star');
+    const name = item.grade.toUpperCase();
+    return `
+      <div class="backlog-item">
+        <span class="grade-badge ${cls}">${name}</span>
+        <div>
+          <div class="backlog-title">${item.title}</div>
+          ${item.description ? `<div class="backlog-desc">${item.description}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderSnapshotPanel(snapshots) {
+  const el = document.getElementById('snapshotContent');
+  if (!snapshots.length) {
+    el.innerHTML = '<p class="panel-empty">아직 스냅샷 없음<br><small style="font-size:11px">Round 3마다 자동 생성</small></p>';
+    return;
+  }
+  el.innerHTML = snapshots.map(name => {
+    const m    = name.match(/round-(\d+)/i);
+    const num  = m ? parseInt(m[1]) : 0;
+    const type = (num % 6 === 0) ? '검증자' : '기획자';
+    return `
+      <div class="snapshot-item" onclick="openSnapshot('${name}')">
+        <span class="snapshot-icon">📄</span>
+        <span class="snapshot-name">${name}</span>
+        <span class="snapshot-type">${type}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderTeamPanel(team) {
+  if (!team) return;
+  const el = document.getElementById('teamBadges');
+  const badges = [];
+  (team.base    || []).forEach(m => badges.push(`<span class="team-badge team-base">${m}</span>`));
+  (team.dynamic || []).forEach(m => badges.push(`<span class="team-badge team-dynamic">${m}</span>`));
+  if (team.security) badges.push(`<span class="team-badge team-security">보안전문가</span>`);
+  el.innerHTML = badges.join('');
+}
+
+// ── Modal ──────────────────────────────────────────────────
+
+async function openSnapshot(name) {
+  try {
+    const res  = await fetch(`/api/snapshot/${name}`);
+    const text = await res.text();
+    document.getElementById('modalTitle').textContent = name;
+    document.getElementById('modalBody').textContent  = text;
+    document.getElementById('modal').classList.remove('hidden');
+  } catch (e) {
+    alert('스냅샷 로드 실패: ' + e.message);
+  }
+}
+
+document.getElementById('modalClose').onclick = () =>
+  document.getElementById('modal').classList.add('hidden');
+
+document.getElementById('modal').onclick = e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+};
+
+// ── Polling ────────────────────────────────────────────────
+
+function updateTick() {
+  if (!lastPollTime) return;
+  const secs = Math.round((Date.now() - lastPollTime) / 1000);
+  if (secs > 1) {
+    document.getElementById('lastUpdated').textContent = `마지막 갱신: ${secs}초 전`;
+  }
+}
+
+async function poll() {
+  try {
+    const res = await fetch('/api/state');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    renderHeader(data.memory, data.github);
+    renderPhaseBar(data.memory.phase);
+    renderLoopPanel(data.memory);
+    renderChecklistPanel(data.memory.checklist || []);
+    renderBacklogPanel(data.backlog ? (data.backlog.items || []) : []);
+    renderSnapshotPanel(data.snapshots || []);
+    renderTeamPanel(data.memory.team);
+
+    lastPollTime = Date.now();
+    document.getElementById('lastUpdated').textContent = '마지막 갱신: 방금';
+  } catch (e) {
+    document.getElementById('lastUpdated').textContent = `⚠️ 연결 오류`;
+  }
+}
+
+poll();
+setInterval(poll,       POLL_MS);
+setInterval(updateTick, 1000);
+</script>
+</body>
+</html>

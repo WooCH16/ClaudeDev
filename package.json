@@ -1,0 +1,8 @@
+{
+  "name": "coat",
+  "version": "2.0.0",
+  "description": "COAT - Choi's Agent Team",
+  "scripts": {
+    "dashboard": "node dashboard/server.js --open"
+  }
+}

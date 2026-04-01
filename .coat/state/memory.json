@@ -1,0 +1,36 @@
+{
+  "feature": "GitHub Actions 연동",
+  "phase": "completed",
+  "round": 3,
+  "startedAt": "2026-04-01T00:00:00.000Z",
+  "team": {
+    "base": ["기획자", "개발자", "검증자"],
+    "dynamic": ["통합전문가"],
+    "security": false
+  },
+  "matchRate": {
+    "기능": 97,
+    "UX": 85,
+    "속도": 80
+  },
+  "alignFailCount": 0,
+  "checkpoints": [6, 12, 18],
+  "lastCheckpoint": null,
+  "conditionalPass": false,
+  "checklist": [
+    { "id": "c-01", "label": "github.enabled = false → gh 명령 스킵", "done": true },
+    { "id": "c-02", "label": "github on → config.json 업데이트 + repo 안내", "done": true },
+    { "id": "c-03", "label": "PLAN → Issue 생성 (coat:plan 라벨)", "done": true },
+    { "id": "c-04", "label": "CAST → Branch 생성 (coat/{기능명}/{날짜})", "done": true },
+    { "id": "c-05", "label": "WRAP → PR 생성 (coat:wrap 라벨)", "done": true },
+    { "id": "c-06", "label": "WRAP → 백로그 P1*/P2/P3 Issue 생성", "done": true },
+    { "id": "c-07", "label": "라벨 없으면 자동 생성 (gh label create)", "done": true },
+    { "id": "c-08", "label": "gh 결과 URL 출력", "done": true },
+    { "id": "c-09", "label": "실패 시 에러 + 수동 처리 안내", "done": true }
+  ],
+  "sessionCount": 1,
+  "lastSession": {
+    "startedAt": "2026-04-01T00:00:00.000Z",
+    "platform": "claude"
+  }
+}
