@@ -215,14 +215,25 @@ WRAP에 "⚠️ 조건부 통과" 표시
      - P2  → `gh issue create --repo {repo} --title "[COAT-P2] {title}"  --body "{description}" --label "coat:p2"`
      - P3  → `gh issue create --repo {repo} --title "[COAT-P3] {title}"  --body "{description}" --label "coat:p3"`
      - (P1은 다음 PLAN에서 사용자 결정 — Issue 생성 안 함)
-4. 완료 보고:
+4. `.coat/state/history.json` 업데이트:
+   - 파일 없으면 `{ "items": [] }` 로 생성
+   - items 배열에 추가:
+     ```json
+     {
+       "feature": "{기능명}",
+       "completedAt": "{YYYY-MM-DD}",
+       "matchRate": { "기능": N, "UX": N, "속도": N },
+       "backlog": { "p1star": N, "p1": N, "p2": N, "p3": N }
+     }
+     ```
+5. 완료 보고:
    ```
    [WRAP 완료]
    기능: {기능명}
    최종 Match Rate: 기능 N% · UX N% · 속도 N%
    백로그: P1* N개 · P1 N개 · P2 N개 · P3 N개
    ```
-5. `.coat/state/memory.json` 업데이트: phase = "completed"
+6. `.coat/state/memory.json` 업데이트: phase = "completed"
 
 ---
 
@@ -282,6 +293,58 @@ Match Rate:
 다음 체크포인트: Round N
 백로그: P1* N개 · P1 N개 · P2 N개 · P3 N개
 ─────────────────────────────
+```
+
+---
+
+### next (다음 단계 가이드)
+
+1. `.coat/state/memory.json` 읽기 → `phase`, `round`, `matchRate` 확인
+2. 현재 단계에 따라 안내:
+
+```
+phase = "plan"    → "DESIGN으로 넘어가세요: /coat design {기능명}"
+phase = "design"  → "CAST로 넘어가세요: /coat cast {기능명}"
+phase = "cast"    → "LOOP를 시작하세요: /coat loop {기능명}"
+phase = "loop"
+  종료조건 미충족  → "Round N 진행 중. 계속 개발하세요."
+                     현재 Match Rate + 부족한 항목 표시
+  종료조건 충족    → "ALIGN 진입 가능: /coat align {기능명}"
+phase = "align"   → "WRAP으로 넘어가세요: /coat wrap {기능명}"
+phase = "completed" → "완료된 기능입니다. 새 기능: /coat plan {새기능명}"
+memory 없음       → "시작하세요: /coat plan {기능명}"
+```
+
+---
+
+### history (완료 기능 목록)
+
+1. `.coat/state/history.json` 읽기 (없으면 "완료된 기능 없음")
+2. 목록 출력:
+
+```
+─────────────────────────────
+🧥 COAT History
+─────────────────────────────
+#1  소셜로그인        2026-03-31  기능 97% · UX 86% · 속도 82%
+#2  대시보드          2026-04-01  기능 100% · UX 100% · 속도 100%
+─────────────────────────────
+총 2개 완료
+```
+
+3. WRAP 완료 시 자동으로 `.coat/state/history.json`에 기록:
+
+```json
+{
+  "items": [
+    {
+      "feature": "소셜로그인",
+      "completedAt": "2026-03-31",
+      "matchRate": { "기능": 97, "UX": 86, "속도": 82 },
+      "backlog": { "p1star": 0, "p1": 1, "p2": 2, "p3": 1 }
+    }
+  ]
+}
 ```
 
 ---

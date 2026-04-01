@@ -37,8 +37,9 @@ function getState() {
     checklist: []
   });
 
-  const backlog = readJSON(path.join(COAT_DIR, 'state', 'backlog.json'), { items: [] });
-  const config = readJSON(path.join(COAT_DIR, 'config.json'), {
+  const backlog  = readJSON(path.join(COAT_DIR, 'state', 'backlog.json'),  { items: [] });
+  const history  = readJSON(path.join(COAT_DIR, 'state', 'history.json'), { items: [] });
+  const config   = readJSON(path.join(COAT_DIR, 'config.json'), {
     github: { enabled: false, repo: '' }
   });
 
@@ -51,7 +52,7 @@ function getState() {
       .reverse();
   } catch { /* 디렉토리 없으면 빈 배열 */ }
 
-  return { memory, backlog, github: config.github, snapshots };
+  return { memory, backlog, history, github: config.github, snapshots };
 }
 
 const server = http.createServer((req, res) => {
