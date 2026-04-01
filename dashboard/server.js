@@ -55,11 +55,39 @@ function getState() {
   return { memory, backlog, history, github: config.github, snapshots };
 }
 
+const sseClients = new Set();
+
+let fsWatcher = null;
+function ensureWatcher() {
+  if (fsWatcher) return;
+  const stateDir = path.join(COAT_DIR, 'state');
+  try {
+    fsWatcher = fs.watch(stateDir, { persistent: false }, () => {
+      for (const client of sseClients) {
+        try { client.write('data: update\n\n'); } catch { sseClients.delete(client); }
+      }
+    });
+  } catch { /* state 디렉토리 없으면 무시 */ }
+}
+
 const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = urlObj.pathname;
 
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  if (pathname === '/api/events') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+    res.write('data: connected\n\n');
+    sseClients.add(res);
+    ensureWatcher();
+    req.on('close', () => sseClients.delete(res));
+    return;
+  }
 
   if (pathname === '/api/state') {
     res.writeHead(200, { 'Content-Type': 'application/json' });

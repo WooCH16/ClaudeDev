@@ -231,14 +231,20 @@ WRAP에 "⚠️ 조건부 통과" 표시
        "backlog": { "p1star": N, "p1": N, "p2": N, "p3": N }
      }
      ```
-5. 완료 보고:
+5. `README.md` 버전 히스토리 업데이트 (프로젝트 루트의 README.md):
+   - README.md에서 `| v` 로 시작하는 버전 히스토리 테이블 탐색
+   - 테이블 마지막 행 다음에 새 행 추가:
+     `| {기능명} | {YYYY-MM-DD} | {핵심 변경 한 줄} |`
+   - 성공: "README.md 버전 히스토리 업데이트됨"
+   - 테이블 없거나 실패 시: 조용히 스킵 (에러 없음)
+6. 완료 보고:
    ```
    [WRAP 완료]
    기능: {기능명}
    최종 Match Rate: 기능 N% · UX N% · 속도 N%
    백로그: P1* N개 · P1 N개 · P2 N개 · P3 N개
    ```
-6. `.coat/state/memory.json` 업데이트: phase = "completed"
+7. `.coat/state/memory.json` 업데이트: phase = "completed"
 
 ---
 
@@ -324,15 +330,22 @@ Match Rate:
 2. 현재 단계에 따라 안내:
 
 ```
-phase = "plan"    → "DESIGN으로 넘어가세요: /coat design {기능명}"
-phase = "design"  → "CAST로 넘어가세요: /coat cast {기능명}"
-phase = "cast"    → "LOOP를 시작하세요: /coat loop {기능명}"
+phase = "plan"    → "다음 단계: DESIGN. 바로 시작할까요? [예] [아니오]"
+                     [예] → /coat design {기능명} 즉시 실행
+phase = "design"  → "다음 단계: CAST. 바로 시작할까요? [예] [아니오]"
+                     [예] → /coat cast {기능명} 즉시 실행
+phase = "cast"    → "다음 단계: LOOP. 바로 시작할까요? [예] [아니오]"
+                     [예] → /coat loop {기능명} 즉시 실행
 phase = "loop"
-  종료조건 미충족  → "Round N 진행 중. 계속 개발하세요."
+  종료조건 미충족  → "Round N 진행 중."
                      현재 Match Rate + 부족한 항목 표시
-  종료조건 충족    → "ALIGN 진입 가능: /coat align {기능명}"
-phase = "align"   → "WRAP으로 넘어가세요: /coat wrap {기능명}"
-phase = "completed" → "완료된 기능입니다. 새 기능: /coat plan {새기능명}"
+                     (자동 실행 없음 — 개발 계속 필요)
+  종료조건 충족    → "다음 단계: ALIGN. 바로 시작할까요? [예] [아니오]"
+                     [예] → /coat align {기능명} 즉시 실행
+phase = "align"   → "다음 단계: WRAP. 바로 시작할까요? [예] [아니오]"
+                     [예] → /coat wrap {기능명} 즉시 실행
+phase = "completed" → "완료된 기능입니다. 새 기능을 시작하려면: /coat plan {새기능명}"
+                      (자동 실행 없음 — 기능명 입력 필요)
 memory 없음       → "시작하세요: /coat plan {기능명}"
 ```
 
