@@ -65,6 +65,29 @@
   color: var(--text);
   font-weight: 700;
 }
+.usage-daily {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.usage-daily-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(168,85,247,0.18);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.usage-daily-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #a855f7;
+  transition: width 0.4s ease;
+}
+.usage-daily-fill.warn  { background: var(--warning); }
+.usage-daily-fill.danger { background: var(--danger); }
 
 body {
   background: var(--bg);
@@ -728,11 +751,19 @@ async function pollUsage() {
     const data = await res.json();
     const el   = document.getElementById('usageBadge');
     if (!data || !data.output) { el.innerHTML = ''; return; }
-    const total = data.input + data.output + data.cacheRead + data.cacheCreate;
+    const total = data.sessionTotal || (data.input + data.output + data.cacheRead + data.cacheCreate);
+    const dailyLine = data.dailyPct != null ? (() => {
+      const pct   = data.dailyPct;
+      const cls   = pct >= 90 ? 'danger' : pct >= 70 ? 'warn' : '';
+      const label = pct >= 100 ? '⚠️ 한도 초과' : `일일 ${pct}%`;
+      return `<div class="usage-daily">
+        <div class="usage-daily-bar"><div class="usage-daily-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div>
+        <span>${label}</span>
+      </div>`;
+    })() : '';
     el.innerHTML = `
-      <div class="usage-badge" title="입력 ${fmtTokens(data.input)} · 출력 ${fmtTokens(data.output)} · 캐시읽기 ${fmtTokens(data.cacheRead)}">
-        🤖 ${fmtTokens(total)}tok
-        <span class="usage-cost">$${data.cost.toFixed(4)}</span>
+      <div class="usage-badge" title="입력 ${fmtTokens(data.input)} · 출력 ${fmtTokens(data.output)} · 캐시읽기 ${fmtTokens(data.cacheRead)} · 일일 ${fmtTokens(data.dailyTotal||0)}tok">
+        <div>🤖 ${fmtTokens(total)}tok <span class="usage-cost">$${data.cost.toFixed(4)}</span>${dailyLine}</div>
       </div>`;
   } catch { /* 무시 */ }
 }

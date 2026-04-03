@@ -5,5 +5,8 @@
     "auto_issue": true,
     "auto_branch": true,
     "auto_pr": true
+  },
+  "claude": {
+    "daily_token_limit": 5000000
   }
 }

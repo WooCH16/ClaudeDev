@@ -33,33 +33,68 @@ function fmtTokens(n: number): string {
   return String(n);
 }
 
-function getUsage(projectRoot: string): { total: number; cost: number } | null {
+function readConfigDailyLimit(projectRoot: string): number | null {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(projectRoot, '.coat', 'config.json'), 'utf8'));
+    return cfg?.claude?.daily_token_limit || null;
+  } catch { return null; }
+}
+
+function sumLines(lines: string[], todayPrefix: string | null) {
+  let input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
+  let dInput = 0, dOutput = 0, dCacheRead = 0, dCacheCreate = 0;
+  for (const line of lines) {
+    try {
+      const obj = JSON.parse(line);
+      const u   = obj?.message?.usage;
+      if (!u) continue;
+      const i  = u.input_tokens                || 0;
+      const o  = u.output_tokens               || 0;
+      const cr = u.cache_read_input_tokens     || 0;
+      const cc = u.cache_creation_input_tokens || 0;
+      input += i; output += o; cacheRead += cr; cacheCreate += cc;
+      if (todayPrefix && obj.timestamp?.startsWith(todayPrefix)) {
+        dInput += i; dOutput += o; dCacheRead += cr; dCacheCreate += cc;
+      }
+    } catch { /* 무시 */ }
+  }
+  return { input, output, cacheRead, cacheCreate, dInput, dOutput, dCacheRead, dCacheCreate };
+}
+
+function getUsage(projectRoot: string): { total: number; cost: number; dailyPct: number | null } | null {
   try {
     const homeDir = process.env.USERPROFILE || process.env.HOME || '';
     const dir     = path.join(homeDir, '.claude', 'projects', encodeClaudePath(projectRoot));
     const files   = fs.readdirSync(dir).filter((f: string) => f.endsWith('.jsonl'));
     if (!files.length) return null;
 
-    const latest = files
-      .map((f: string) => ({ f, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
-      .sort((a: { mtime: number }, b: { mtime: number }) => b.mtime - a.mtime)[0].f;
+    const now         = new Date();
+    const todayPrefix = now.getFullYear() + '-'
+      + String(now.getMonth() + 1).padStart(2, '0') + '-'
+      + String(now.getDate()).padStart(2, '0');
 
-    const lines = fs.readFileSync(path.join(dir, latest), 'utf8').split('\n').filter(Boolean);
-    let input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
-    for (const line of lines) {
-      try {
-        const u = JSON.parse(line)?.message?.usage;
-        if (!u) continue;
-        input       += u.input_tokens                || 0;
-        output      += u.output_tokens               || 0;
-        cacheRead   += u.cache_read_input_tokens     || 0;
-        cacheCreate += u.cache_creation_input_tokens || 0;
-      } catch { /* 무시 */ }
+    const withStat = files.map((f: string) => ({ f, mtime: fs.statSync(path.join(dir, f)).mtimeMs }));
+    const latest   = withStat.sort((a, b) => b.mtime - a.mtime)[0].f;
+    const sessionLines = fs.readFileSync(path.join(dir, latest), 'utf8').split('\n').filter(Boolean);
+    const s = sumLines(sessionLines, null);
+    const total = s.input + s.output + s.cacheRead + s.cacheCreate;
+    const cost  = s.input * PRICE.input + s.output * PRICE.output
+                + s.cacheRead * PRICE.cacheRead + s.cacheCreate * PRICE.cacheCreation;
+
+    const todayStart = new Date(todayPrefix + 'T00:00:00.000Z').getTime()
+      - now.getTimezoneOffset() * 60000;
+    const todayFiles = withStat.filter(x => x.mtime >= todayStart);
+    let dTotal = 0;
+    for (const { f } of todayFiles) {
+      const lines = fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter(Boolean);
+      const d = sumLines(lines, todayPrefix);
+      dTotal += d.dInput + d.dOutput + d.dCacheRead + d.dCacheCreate;
     }
-    const total = input + output + cacheRead + cacheCreate;
-    const cost  = input * PRICE.input + output * PRICE.output
-                + cacheRead * PRICE.cacheRead + cacheCreate * PRICE.cacheCreation;
-    return { total, cost: Math.round(cost * 10000) / 10000 };
+
+    const limit    = readConfigDailyLimit(projectRoot);
+    const dailyPct = limit ? Math.min(100, Math.round(dTotal / limit * 100)) : null;
+
+    return { total, cost: Math.round(cost * 10000) / 10000, dailyPct };
   } catch {
     return null;
   }
@@ -111,8 +146,9 @@ function updateStatusBar(): void {
   if (folders) {
     const usage = getUsage(folders[0].uri.fsPath);
     if (usage && usage.total > 0) {
-      usageBarItem.text    = `🤖 ${fmtTokens(usage.total)}tok $${usage.cost.toFixed(4)}`;
-      usageBarItem.tooltip = `현재 세션 토큰 사용량 (Sonnet 4.6 기준 추정 비용)`;
+      const dailyStr = usage.dailyPct != null ? `  일일 ${usage.dailyPct}%` : '';
+      usageBarItem.text    = `🤖 ${fmtTokens(usage.total)}tok $${usage.cost.toFixed(4)}${dailyStr}`;
+      usageBarItem.tooltip = `현재 세션 토큰 사용량 (Sonnet 4.6 기준 추정 비용)${usage.dailyPct != null ? `\n일일 한도 대비 ${usage.dailyPct}% 사용` : ''}`;
       usageBarItem.show();
     } else {
       usageBarItem.hide();
