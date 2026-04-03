@@ -256,7 +256,7 @@ function gaugeHtml(name, val, target) {
 function activate(context) {
     // 상태바 아이템 생성
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    statusBarItem.command = 'coat.showChecklist';
+    statusBarItem.command = 'coat.showMenu';
     context.subscriptions.push(statusBarItem);
     usageBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
     context.subscriptions.push(usageBarItem);
@@ -283,6 +283,21 @@ function activate(context) {
     // 커맨드: 대시보드 열기
     context.subscriptions.push(vscode.commands.registerCommand('coat.openDashboard', () => {
         vscode.env.openExternal(vscode.Uri.parse('http://localhost:3030'));
+    }));
+    // 커맨드: 상태바 클릭 메뉴 (체크리스트 / 대시보드)
+    context.subscriptions.push(vscode.commands.registerCommand('coat.showMenu', async () => {
+        const pick = await vscode.window.showQuickPick([
+            { label: '$(checklist) 체크리스트 보기', action: 'checklist' },
+            { label: '$(browser) 대시보드 열기 (http://localhost:3030)', action: 'dashboard' },
+        ], { placeHolder: '🧥 COAT' });
+        if (!pick)
+            return;
+        if (pick.action === 'checklist') {
+            vscode.commands.executeCommand('coat.showChecklist');
+        }
+        else {
+            vscode.commands.executeCommand('coat.openDashboard');
+        }
     }));
 }
 function deactivate() {
