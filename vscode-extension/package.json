@@ -17,10 +17,18 @@
       {
         "command": "coat.showChecklist",
         "title": "COAT: 체크리스트 보기"
+      },
+      {
+        "command": "coat.showMenu",
+        "title": "COAT: 메뉴"
       }
     ],
     "menus": {
-      "statusBar/remoteIndicator": []
+      "statusBar/remoteIndicator": [],
+      "commandPalette": [
+        { "command": "coat.openDashboard" },
+        { "command": "coat.showChecklist" }
+      ]
     }
   },
   "scripts": {
