@@ -13,6 +13,7 @@ interface Memory {
 let statusBarItem: vscode.StatusBarItem;
 let usageBarItem:  vscode.StatusBarItem;
 let watcher: fs.FSWatcher | null = null;
+let usageTimer: ReturnType<typeof setInterval> | null = null;
 
 const MODEL_PRICES: Record<string, { input: number; output: number; cacheRead: number; cacheCreation: number }> = {
   'claude-opus-4-6':           { input: 15.00, output: 75.00, cacheRead: 1.50, cacheCreation: 18.75 },
@@ -239,6 +240,10 @@ export function activate(context: vscode.ExtensionContext): void {
   // 초기 업데이트
   updateStatusBar();
   startWatcher();
+
+  // 토큰 사용량 30초마다 갱신 (JSONL 파일은 별도 watcher 없이 폴링)
+  usageTimer = setInterval(() => updateStatusBar(), 30_000);
+  context.subscriptions.push({ dispose: () => { if (usageTimer) clearInterval(usageTimer); } });
 
   // .coat/ 디렉토리 감시 (없다가 생기는 경우)
   const coatWatcher = vscode.workspace.createFileSystemWatcher('**/.coat/state/memory.json');
