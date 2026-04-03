@@ -25,6 +25,63 @@ if (projectsArgIdx !== -1) {
 const MULTI_MODE = PROJECT_LIST.length > 1;
 const HTML_FILE  = path.join(__dirname, 'dashboard.html');
 
+// Claude Code 세션 경로 인코딩
+// C:\Develop\COAT → c--Develop-COAT
+function encodeClaudePath(absPath) {
+  return absPath
+    .replace(/^([A-Za-z]):[\\/]/, (_, d) => d.toLowerCase() + '--')
+    .replace(/[\\/]/g, '-');
+}
+
+// 현재 세션 usage 합산 (Sonnet 4.6 기준 요금)
+// https://www.anthropic.com/pricing
+const PRICE = {
+  input:          3.00  / 1_000_000,
+  output:         15.00 / 1_000_000,
+  cacheRead:      0.30  / 1_000_000,
+  cacheCreation:  3.75  / 1_000_000,
+};
+
+function getClaudeUsage(projectRoot) {
+  try {
+    const encoded  = encodeClaudePath(projectRoot);
+    const homeDir  = process.env.USERPROFILE || process.env.HOME || '';
+    const dir      = path.join(homeDir, '.claude', 'projects', encoded);
+    const files    = fs.readdirSync(dir).filter(f => f.endsWith('.jsonl'));
+    if (!files.length) return null;
+
+    // 가장 최근 수정된 파일 = 현재 세션
+    const latest = files
+      .map(f => ({ f, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime)[0].f;
+
+    const lines = fs.readFileSync(path.join(dir, latest), 'utf8')
+      .split('\n').filter(Boolean);
+
+    let input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
+    for (const line of lines) {
+      try {
+        const obj = JSON.parse(line);
+        const u   = obj?.message?.usage;
+        if (!u) continue;
+        input       += u.input_tokens                  || 0;
+        output      += u.output_tokens                 || 0;
+        cacheRead   += u.cache_read_input_tokens       || 0;
+        cacheCreate += u.cache_creation_input_tokens   || 0;
+      } catch { /* 파싱 실패 무시 */ }
+    }
+
+    const cost = input       * PRICE.input
+               + output      * PRICE.output
+               + cacheRead   * PRICE.cacheRead
+               + cacheCreate * PRICE.cacheCreation;
+
+    return { input, output, cacheRead, cacheCreate, cost: Math.round(cost * 10000) / 10000 };
+  } catch {
+    return null;
+  }
+}
+
 function coatDir(projectRoot) {
   return path.join(projectRoot, '.coat');
 }
@@ -140,6 +197,13 @@ const server = http.createServer((req, res) => {
     getSseClients(-1).add(res);
     PROJECT_LIST.forEach((_, i) => ensureWatcher(i));
     req.on('close', () => getSseClients(-1).delete(res));
+    return;
+  }
+
+  // Claude 세션 usage
+  if (pathname === '/api/claude-usage') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(getClaudeUsage(PROJECT_LIST[idx]) || {}));
     return;
   }
 

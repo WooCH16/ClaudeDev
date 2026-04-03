@@ -11,7 +11,59 @@ interface Memory {
 }
 
 let statusBarItem: vscode.StatusBarItem;
+let usageBarItem:  vscode.StatusBarItem;
 let watcher: fs.FSWatcher | null = null;
+
+const PRICE = {
+  input:         3.00  / 1_000_000,
+  output:        15.00 / 1_000_000,
+  cacheRead:     0.30  / 1_000_000,
+  cacheCreation: 3.75  / 1_000_000,
+};
+
+function encodeClaudePath(absPath: string): string {
+  return absPath
+    .replace(/^([A-Za-z]):[\\/]/, (_: string, d: string) => d.toLowerCase() + '--')
+    .replace(/[\\/]/g, '-');
+}
+
+function fmtTokens(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function getUsage(projectRoot: string): { total: number; cost: number } | null {
+  try {
+    const homeDir = process.env.USERPROFILE || process.env.HOME || '';
+    const dir     = path.join(homeDir, '.claude', 'projects', encodeClaudePath(projectRoot));
+    const files   = fs.readdirSync(dir).filter((f: string) => f.endsWith('.jsonl'));
+    if (!files.length) return null;
+
+    const latest = files
+      .map((f: string) => ({ f, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+      .sort((a: { mtime: number }, b: { mtime: number }) => b.mtime - a.mtime)[0].f;
+
+    const lines = fs.readFileSync(path.join(dir, latest), 'utf8').split('\n').filter(Boolean);
+    let input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
+    for (const line of lines) {
+      try {
+        const u = JSON.parse(line)?.message?.usage;
+        if (!u) continue;
+        input       += u.input_tokens                || 0;
+        output      += u.output_tokens               || 0;
+        cacheRead   += u.cache_read_input_tokens     || 0;
+        cacheCreate += u.cache_creation_input_tokens || 0;
+      } catch { /* 무시 */ }
+    }
+    const total = input + output + cacheRead + cacheCreate;
+    const cost  = input * PRICE.input + output * PRICE.output
+                + cacheRead * PRICE.cacheRead + cacheCreate * PRICE.cacheCreation;
+    return { total, cost: Math.round(cost * 10000) / 10000 };
+  } catch {
+    return null;
+  }
+}
 
 function getMemoryPath(): string | null {
   const folders = vscode.workspace.workspaceFolders;
@@ -47,12 +99,25 @@ function updateStatusBar(): void {
   const memPath = getMemoryPath();
   if (!memPath) {
     statusBarItem.hide();
+    usageBarItem.hide();
     return;
   }
   const memory = readMemory(memPath);
   statusBarItem.text    = formatStatusBar(memory);
   statusBarItem.tooltip = `COAT — ${memory.feature || ''} (${memory.phase || ''})`;
   statusBarItem.show();
+
+  const folders = vscode.workspace.workspaceFolders;
+  if (folders) {
+    const usage = getUsage(folders[0].uri.fsPath);
+    if (usage && usage.total > 0) {
+      usageBarItem.text    = `🤖 ${fmtTokens(usage.total)}tok $${usage.cost.toFixed(4)}`;
+      usageBarItem.tooltip = `현재 세션 토큰 사용량 (Sonnet 4.6 기준 추정 비용)`;
+      usageBarItem.show();
+    } else {
+      usageBarItem.hide();
+    }
+  }
 }
 
 function startWatcher(): void {
@@ -112,6 +177,9 @@ export function activate(context: vscode.ExtensionContext): void {
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   statusBarItem.command = 'coat.showChecklist';
   context.subscriptions.push(statusBarItem);
+
+  usageBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+  context.subscriptions.push(usageBarItem);
 
   // 초기 업데이트
   updateStatusBar();
