@@ -7,16 +7,27 @@ const { exec } = require('child_process');
 
 const PORT = 3030;
 
-// --project 인자로 프로젝트 경로 지정 가능
-// 예: node server.js --project /path/to/myproject
-// 미지정 시 현재 작업 디렉토리 기준
-const projectArgIdx = process.argv.indexOf('--project');
-const PROJECT_ROOT = projectArgIdx !== -1
-  ? path.resolve(process.argv[projectArgIdx + 1])
-  : process.cwd();
+// --projects /a,/b,/c  (복수) 또는 --project /a (단수, 하위 호환)
+const projectsArgIdx = process.argv.indexOf('--projects');
+const projectArgIdx  = process.argv.indexOf('--project');
 
-const COAT_DIR = path.join(PROJECT_ROOT, '.coat');
-const HTML_FILE = path.join(__dirname, 'dashboard.html');
+let PROJECT_LIST;
+if (projectsArgIdx !== -1) {
+  PROJECT_LIST = process.argv[projectsArgIdx + 1]
+    .split(',')
+    .map(p => path.resolve(p.trim()));
+} else if (projectArgIdx !== -1) {
+  PROJECT_LIST = [path.resolve(process.argv[projectArgIdx + 1])];
+} else {
+  PROJECT_LIST = [process.cwd()];
+}
+
+const MULTI_MODE = PROJECT_LIST.length > 1;
+const HTML_FILE  = path.join(__dirname, 'dashboard.html');
+
+function coatDir(projectRoot) {
+  return path.join(projectRoot, '.coat');
+}
 
 function readJSON(filePath, fallback) {
   try {
@@ -26,56 +37,85 @@ function readJSON(filePath, fallback) {
   }
 }
 
-function getState() {
-  const memory = readJSON(path.join(COAT_DIR, 'state', 'memory.json'), {
-    feature: '(없음)',
-    phase: 'plan',
-    round: 0,
+function getState(projectRoot) {
+  const dir = coatDir(projectRoot);
+  const memory = readJSON(path.join(dir, 'state', 'memory.json'), {
+    feature: '(없음)', phase: 'plan', round: 0,
     matchRate: { '기능': 0, 'UX': 0, '속도': 0 },
     team: { base: ['기획자', '개발자', '검증자'], dynamic: [], security: false },
-    alignFailCount: 0,
-    checklist: []
+    alignFailCount: 0, checklist: []
   });
-
-  const backlog  = readJSON(path.join(COAT_DIR, 'state', 'backlog.json'),  { items: [] });
-  const history  = readJSON(path.join(COAT_DIR, 'state', 'history.json'), { items: [] });
-  const config   = readJSON(path.join(COAT_DIR, 'config.json'), {
-    github: { enabled: false, repo: '' }
-  });
+  const backlog = readJSON(path.join(dir, 'state', 'backlog.json'), { items: [] });
+  const history = readJSON(path.join(dir, 'state', 'history.json'), { items: [] });
+  const config  = readJSON(path.join(dir, 'config.json'), { github: { enabled: false, repo: '' } });
 
   let snapshots = [];
-  const snapshotsDir = path.join(COAT_DIR, 'snapshots');
   try {
-    snapshots = fs.readdirSync(snapshotsDir)
-      .filter(f => f.endsWith('.md'))
-      .sort()
-      .reverse();
-  } catch { /* 디렉토리 없으면 빈 배열 */ }
+    snapshots = fs.readdirSync(path.join(dir, 'snapshots'))
+      .filter(f => f.endsWith('.md')).sort().reverse();
+  } catch { /* 없으면 빈 배열 */ }
 
   return { memory, backlog, history, github: config.github, snapshots };
 }
 
-const sseClients = new Set();
+function getProjectsSummary() {
+  return PROJECT_LIST.map((root, index) => {
+    const memory = readJSON(
+      path.join(coatDir(root), 'state', 'memory.json'),
+      { feature: '(없음)', phase: 'plan', round: 0 }
+    );
+    return {
+      index,
+      name: path.basename(root),
+      path: root,
+      feature: memory.feature,
+      phase: memory.phase,
+      round: memory.round || 0,
+    };
+  });
+}
 
-let fsWatcher = null;
-function ensureWatcher() {
-  if (fsWatcher) return;
-  const stateDir = path.join(COAT_DIR, 'state');
+// ── SSE ───────────────────────────────────────────────────
+
+const sseClients = new Map(); // projectIndex → Set<res>
+
+function getSseClients(idx) {
+  if (!sseClients.has(idx)) sseClients.set(idx, new Set());
+  return sseClients.get(idx);
+}
+
+const fsWatchers = new Map(); // projectIndex → FSWatcher
+
+function ensureWatcher(idx) {
+  if (fsWatchers.has(idx)) return;
+  const stateDir = path.join(coatDir(PROJECT_LIST[idx]), 'state');
   try {
-    fsWatcher = fs.watch(stateDir, { persistent: false }, () => {
-      for (const client of sseClients) {
-        try { client.write('data: update\n\n'); } catch { sseClients.delete(client); }
+    const watcher = fs.watch(stateDir, { persistent: false }, () => {
+      for (const client of getSseClients(idx)) {
+        try { client.write('data: update\n\n'); } catch { getSseClients(idx).delete(client); }
+      }
+      // 멀티 모드: projects 요약도 갱신 알림 (index -1 관례)
+      if (MULTI_MODE) {
+        for (const client of getSseClients(-1)) {
+          try { client.write('data: update\n\n'); } catch { getSseClients(-1).delete(client); }
+        }
       }
     });
+    fsWatchers.set(idx, watcher);
   } catch { /* state 디렉토리 없으면 무시 */ }
 }
 
+// ── HTTP Server ───────────────────────────────────────────
+
 const server = http.createServer((req, res) => {
-  const urlObj = new URL(req.url, `http://localhost:${PORT}`);
+  const urlObj   = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = urlObj.pathname;
+  const projectParam = parseInt(urlObj.searchParams.get('project') || '0', 10);
+  const idx = (projectParam >= 0 && projectParam < PROJECT_LIST.length) ? projectParam : 0;
 
   res.setHeader('Access-Control-Allow-Origin', '*');
 
+  // SSE — 프로젝트별
   if (pathname === '/api/events') {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -83,30 +123,52 @@ const server = http.createServer((req, res) => {
       'Connection': 'keep-alive',
     });
     res.write('data: connected\n\n');
-    sseClients.add(res);
-    ensureWatcher();
-    req.on('close', () => sseClients.delete(res));
+    getSseClients(idx).add(res);
+    ensureWatcher(idx);
+    req.on('close', () => getSseClients(idx).delete(res));
     return;
   }
 
+  // SSE — projects 요약 전용 (멀티 모드)
+  if (pathname === '/api/events/projects') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+    res.write('data: connected\n\n');
+    getSseClients(-1).add(res);
+    PROJECT_LIST.forEach((_, i) => ensureWatcher(i));
+    req.on('close', () => getSseClients(-1).delete(res));
+    return;
+  }
+
+  // 전체 프로젝트 요약
+  if (pathname === '/api/projects') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ projects: getProjectsSummary(), multiMode: MULTI_MODE }));
+    return;
+  }
+
+  // 단일 프로젝트 상태
   if (pathname === '/api/state') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     try {
-      res.end(JSON.stringify(getState()));
+      res.end(JSON.stringify(getState(PROJECT_LIST[idx])));
     } catch (e) {
       res.end(JSON.stringify({ error: e.message }));
     }
     return;
   }
 
+  // 스냅샷
   const snapshotMatch = pathname.match(/^\/api\/snapshot\/(.+\.md)$/);
   if (snapshotMatch) {
-    const name = path.basename(snapshotMatch[1]);
-    const filePath = path.join(COAT_DIR, 'snapshots', name);
+    const name     = path.basename(snapshotMatch[1]);
+    const filePath = path.join(coatDir(PROJECT_LIST[idx]), 'snapshots', name);
     try {
-      const content = fs.readFileSync(filePath, 'utf8');
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end(content);
+      res.end(fs.readFileSync(filePath, 'utf8'));
     } catch {
       res.writeHead(404);
       res.end('Snapshot not found');
@@ -114,11 +176,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // HTML
   if (pathname === '/' || pathname === '/dashboard.html') {
     try {
-      const html = fs.readFileSync(HTML_FILE, 'utf8');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(html);
+      res.end(fs.readFileSync(HTML_FILE, 'utf8'));
     } catch (e) {
       res.writeHead(500);
       res.end('dashboard.html not found: ' + e.message);
@@ -132,20 +194,23 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   const url = `http://localhost:${PORT}`;
-  console.log(`\n🧥 COAT Dashboard → ${url}\n`);
+  console.log(`\n🧥 COAT Dashboard → ${url}`);
+  if (MULTI_MODE) {
+    console.log(`   프로젝트 ${PROJECT_LIST.length}개:`);
+    PROJECT_LIST.forEach((p, i) => console.log(`   [${i}] ${p}`));
+  }
+  console.log();
   if (process.argv.includes('--open')) {
     const cmd = process.platform === 'win32'
       ? `start "" "${url}"`
-      : process.platform === 'darwin'
-        ? `open ${url}`
-        : `xdg-open ${url}`;
+      : process.platform === 'darwin' ? `open ${url}` : `xdg-open ${url}`;
     exec(cmd);
   }
 });
 
 server.on('error', (e) => {
   if (e.code === 'EADDRINUSE') {
-    console.error(`\n❌ Port ${PORT} already in use. Kill the existing process and retry.\n`);
+    console.error(`\n❌ Port ${PORT} already in use.\n`);
   } else {
     console.error(e);
   }

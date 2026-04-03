@@ -207,3 +207,4 @@ c:/Develop/COAT/
 | v1.1.0 | 2026-04-01 | GitHub 연동 (Issue / Branch / PR 자동화) |
 | v1.2.0 | 2026-04-02 | 테마 토글, _INDEX.md 자동 생성, history round 필드 |
 | v1.3.0 | 2026-04-02 | /coat next 자동 실행, 대시보드 SSE 전환, wrap README 업데이트 |
+| v2.0.0 | 2026-04-03 | 멀티프로젝트 대시보드 사이드바, VSCode 상태바 Extension |
