@@ -14,12 +14,23 @@ let statusBarItem: vscode.StatusBarItem;
 let usageBarItem:  vscode.StatusBarItem;
 let watcher: fs.FSWatcher | null = null;
 
-const PRICE = {
-  input:         3.00  / 1_000_000,
-  output:        15.00 / 1_000_000,
-  cacheRead:     0.30  / 1_000_000,
-  cacheCreation: 3.75  / 1_000_000,
+const MODEL_PRICES: Record<string, { input: number; output: number; cacheRead: number; cacheCreation: number }> = {
+  'claude-opus-4-6':           { input: 15.00, output: 75.00, cacheRead: 1.50, cacheCreation: 18.75 },
+  'claude-sonnet-4-6':         { input:  3.00, output: 15.00, cacheRead: 0.30, cacheCreation:  3.75 },
+  'claude-haiku-4-5':          { input:  0.80, output:  4.00, cacheRead: 0.08, cacheCreation:  1.00 },
+  'claude-haiku-4-5-20251001': { input:  0.80, output:  4.00, cacheRead: 0.08, cacheCreation:  1.00 },
 };
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
+
+function getPriceForModel(model: string) {
+  const raw = MODEL_PRICES[model] ?? MODEL_PRICES[DEFAULT_MODEL];
+  return {
+    input:         raw.input         / 1_000_000,
+    output:        raw.output        / 1_000_000,
+    cacheRead:     raw.cacheRead     / 1_000_000,
+    cacheCreation: raw.cacheCreation / 1_000_000,
+  };
+}
 
 function encodeClaudePath(absPath: string): string {
   return absPath
@@ -78,8 +89,6 @@ function getUsage(projectRoot: string): { total: number; cost: number; dailyPct:
     const sessionLines = fs.readFileSync(path.join(dir, latest), 'utf8').split('\n').filter(Boolean);
     const s = sumLines(sessionLines, null);
     const total = s.input + s.output + s.cacheRead + s.cacheCreate;
-    const cost  = s.input * PRICE.input + s.output * PRICE.output
-                + s.cacheRead * PRICE.cacheRead + s.cacheCreate * PRICE.cacheCreation;
 
     const todayStart = new Date(todayPrefix + 'T00:00:00.000Z').getTime()
       - now.getTimezoneOffset() * 60000;
@@ -93,6 +102,16 @@ function getUsage(projectRoot: string): { total: number; cost: number; dailyPct:
 
     const limit    = readConfigDailyLimit(projectRoot);
     const dailyPct = limit ? Math.min(100, Math.round(dTotal / limit * 100)) : null;
+
+    const model = (() => {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(path.join(projectRoot, '.coat', 'config.json'), 'utf8'));
+        return cfg?.claude?.model || DEFAULT_MODEL;
+      } catch { return DEFAULT_MODEL; }
+    })();
+    const PRICE = getPriceForModel(model);
+    const cost  = s.input * PRICE.input + s.output * PRICE.output
+                + s.cacheRead * PRICE.cacheRead + s.cacheCreate * PRICE.cacheCreation;
 
     return { total, cost: Math.round(cost * 10000) / 10000, dailyPct };
   } catch {

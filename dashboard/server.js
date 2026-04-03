@@ -33,14 +33,25 @@ function encodeClaudePath(absPath) {
     .replace(/[\\/]/g, '-');
 }
 
-// 현재 세션 usage 합산 (Sonnet 4.6 기준 요금)
+// 모델별 요금표 (USD / token)
 // https://www.anthropic.com/pricing
-const PRICE = {
-  input:          3.00  / 1_000_000,
-  output:         15.00 / 1_000_000,
-  cacheRead:      0.30  / 1_000_000,
-  cacheCreation:  3.75  / 1_000_000,
+const MODEL_PRICES = {
+  'claude-opus-4-6':            { input: 15.00, output: 75.00, cacheRead: 1.50,  cacheCreation: 18.75 },
+  'claude-sonnet-4-6':          { input:  3.00, output: 15.00, cacheRead: 0.30,  cacheCreation:  3.75 },
+  'claude-haiku-4-5':           { input:  0.80, output:  4.00, cacheRead: 0.08,  cacheCreation:  1.00 },
+  'claude-haiku-4-5-20251001':  { input:  0.80, output:  4.00, cacheRead: 0.08,  cacheCreation:  1.00 },
 };
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
+
+function getPriceForModel(model) {
+  const raw = MODEL_PRICES[model] || MODEL_PRICES[DEFAULT_MODEL];
+  return {
+    input:         raw.input         / 1_000_000,
+    output:        raw.output        / 1_000_000,
+    cacheRead:     raw.cacheRead     / 1_000_000,
+    cacheCreation: raw.cacheCreation / 1_000_000,
+  };
+}
 
 function sumUsageFromLines(lines, todayPrefix) {
   let input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
@@ -105,21 +116,23 @@ function getClaudeUsage(projectRoot) {
     const dailyTotal = daily.dailyInput + daily.dailyOutput + daily.dailyCacheRead + daily.dailyCacheCreate;
     const sessionTotal = session.input + session.output + session.cacheRead + session.cacheCreate;
 
-    const cost = session.input       * PRICE.input
-               + session.output      * PRICE.output
-               + session.cacheRead   * PRICE.cacheRead
-               + session.cacheCreate * PRICE.cacheCreation;
-
-    // 한도 읽기
+    // 한도·모델 읽기
     const config     = readJSON(path.join(coatDir(projectRoot), 'config.json'), {});
     const dailyLimit = config?.claude?.daily_token_limit || null;
     const dailyPct   = dailyLimit ? Math.min(100, Math.round(dailyTotal / dailyLimit * 100)) : null;
+    const model      = config?.claude?.model || DEFAULT_MODEL;
+
+    const PRICE = getPriceForModel(model);
+    const cost  = session.input       * PRICE.input
+                + session.output      * PRICE.output
+                + session.cacheRead   * PRICE.cacheRead
+                + session.cacheCreate * PRICE.cacheCreation;
 
     return {
       input: session.input, output: session.output,
       cacheRead: session.cacheRead, cacheCreate: session.cacheCreate,
       cost: Math.round(cost * 10000) / 10000,
-      sessionTotal, dailyTotal, dailyLimit, dailyPct,
+      sessionTotal, dailyTotal, dailyLimit, dailyPct, model,
     };
   } catch {
     return null;
