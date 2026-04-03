@@ -4,6 +4,7 @@
   "description": "COAT - Choi's Agent Team",
   "scripts": {
     "dashboard": "node dashboard/server.js --open",
-    "dashboard:project": "node dashboard/server.js --open --project"
+    "dashboard:project": "node dashboard/server.js --open --project",
+    "dashboard:projects": "node dashboard/server.js --open --projects"
   }
 }

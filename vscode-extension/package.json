@@ -1,0 +1,34 @@
+{
+  "name": "coat-statusbar",
+  "displayName": "COAT Status Bar",
+  "description": "COAT 개발 사이클 현황을 VSCode 상태바에 표시",
+  "version": "2.0.0",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["workspaceContains:.coat/state/memory.json"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "coat.openDashboard",
+        "title": "COAT: 대시보드 열기"
+      },
+      {
+        "command": "coat.showChecklist",
+        "title": "COAT: 체크리스트 보기"
+      }
+    ],
+    "menus": {
+      "statusBar/remoteIndicator": []
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.0.0"
+  }
+}

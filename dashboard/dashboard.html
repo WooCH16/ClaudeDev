@@ -118,6 +118,61 @@ header {
 .phase-label.current { color: var(--accent); }
 .phase-label.future  { color: var(--muted); }
 
+/* ── Layout ──────────────────────────────── */
+.app-layout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.main-area { flex: 1; min-width: 0; }
+
+/* ── Sidebar ─────────────────────────────── */
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 0;
+  display: none;
+}
+.sidebar.visible { display: block; }
+.sidebar-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 0 14px 10px;
+}
+.sidebar-item {
+  padding: 9px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+}
+.sidebar-item:hover { background: rgba(59,130,246,0.06); }
+.sidebar-item.active {
+  border-left-color: var(--accent);
+  background: rgba(59,130,246,0.08);
+}
+.sidebar-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-item-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.loop-indicator { color: var(--accent); }
+
 /* ── Grid ────────────────────────────────── */
 .grid {
   display: grid;
@@ -363,39 +418,48 @@ footer {
   </div>
 </header>
 
-<div class="phase-bar" id="phaseBar"></div>
+<div class="app-layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-title">프로젝트</div>
+    <div id="sidebarItems"></div>
+  </nav>
 
-<div class="grid">
-  <div class="panel">
-    <h2>LOOP 진행</h2>
-    <div id="loopContent"></div>
-  </div>
-  <div class="panel">
-    <h2>체크리스트</h2>
-    <div id="checklistContent"></div>
-  </div>
-  <div class="panel">
-    <h2>백로그</h2>
-    <div id="backlogContent"></div>
-  </div>
-  <div class="panel">
-    <h2>스냅샷 히스토리</h2>
-    <div id="snapshotContent"></div>
+  <div class="main-area">
+    <div class="phase-bar" id="phaseBar"></div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>LOOP 진행</h2>
+        <div id="loopContent"></div>
+      </div>
+      <div class="panel">
+        <h2>체크리스트</h2>
+        <div id="checklistContent"></div>
+      </div>
+      <div class="panel">
+        <h2>백로그</h2>
+        <div id="backlogContent"></div>
+      </div>
+      <div class="panel">
+        <h2>스냅샷 히스토리</h2>
+        <div id="snapshotContent"></div>
+      </div>
+    </div>
+
+    <div class="panel history-panel" id="historyPanel">
+      <h2>완료 히스토리</h2>
+      <div id="historyContent"></div>
+    </div>
+
+    <footer>
+      <div class="team-list">
+        <span class="team-label">팀</span>
+        <div id="teamBadges"></div>
+      </div>
+      <div class="last-updated" id="lastUpdated">연결 중...</div>
+    </footer>
   </div>
 </div>
-
-<div class="panel history-panel" id="historyPanel">
-  <h2>완료 히스토리</h2>
-  <div id="historyContent"></div>
-</div>
-
-<footer>
-  <div class="team-list">
-    <span class="team-label">팀</span>
-    <div id="teamBadges"></div>
-  </div>
-  <div class="last-updated" id="lastUpdated">연결 중...</div>
-</footer>
 
 <!-- Modal -->
 <div class="modal-overlay hidden" id="modal">
@@ -600,7 +664,7 @@ function renderHistoryPanel(items) {
 
 async function openSnapshot(name) {
   try {
-    const res  = await fetch(`/api/snapshot/${name}`);
+    const res  = await fetch(`/api/snapshot/${name}?project=${activeProject}`);
     const text = await res.text();
     document.getElementById('modalTitle').textContent = name;
     document.getElementById('modalBody').textContent  = text;
@@ -632,11 +696,50 @@ document.getElementById('themeToggle').onclick = () => {
   document.getElementById('themeToggle').textContent = next === 'light' ? '☀️' : '🌙';
 };
 
+// ── Multi-project state ────────────────────────────────────
+
+let activeProject = 0;
+let activeSSE     = null;
+
+function renderSidebar(projects) {
+  const sidebar = document.getElementById('sidebar');
+  const items   = document.getElementById('sidebarItems');
+  if (!projects || projects.length <= 1) {
+    sidebar.classList.remove('visible');
+    return;
+  }
+  sidebar.classList.add('visible');
+  items.innerHTML = projects.map(p => {
+    const isLoop = p.phase === 'loop';
+    const phaseLabel = (p.phase || 'plan').toUpperCase();
+    return `
+      <div class="sidebar-item ${p.index === activeProject ? 'active' : ''}"
+           onclick="switchProject(${p.index})">
+        <div class="sidebar-item-name">${p.name}</div>
+        <div class="sidebar-item-meta">
+          ${isLoop ? '<span class="loop-indicator">🔄</span>' : ''}
+          <span>${phaseLabel}</span>
+          ${isLoop ? `<span>R${p.round}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function switchProject(idx) {
+  activeProject = idx;
+  await poll();
+  connectSSE();
+  // 사이드바 active 갱신
+  document.querySelectorAll('.sidebar-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+
 // ── Fetch & Render ─────────────────────────────────────────
 
 async function poll() {
   try {
-    const res = await fetch('/api/state');
+    const res = await fetch(`/api/state?project=${activeProject}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -655,19 +758,31 @@ async function poll() {
   }
 }
 
+async function pollProjects() {
+  try {
+    const res = await fetch('/api/projects');
+    if (!res.ok) return;
+    const { projects } = await res.json();
+    renderSidebar(projects);
+  } catch { /* 무시 */ }
+}
+
 // ── SSE ────────────────────────────────────────────────────
 
 function connectSSE() {
-  const es = new EventSource('/api/events');
-  es.onmessage = () => poll();
+  if (activeSSE) activeSSE.close();
+  const es = new EventSource(`/api/events?project=${activeProject}`);
+  es.onmessage = () => { poll(); pollProjects(); };
   es.onerror   = () => {
     es.close();
     document.getElementById('lastUpdated').textContent = '⚠️ 연결 끊김 — 재연결 중...';
     setTimeout(connectSSE, 3000);
   };
+  activeSSE = es;
 }
 
 poll();
+pollProjects();
 connectSSE();
 </script>
 </body>
