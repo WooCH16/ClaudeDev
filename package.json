@@ -5,6 +5,10 @@
   "scripts": {
     "dashboard": "node dashboard/server.js --open",
     "dashboard:project": "node dashboard/server.js --open --project",
-    "dashboard:projects": "node dashboard/server.js --open --projects"
+    "dashboard:projects": "node dashboard/server.js --open --projects",
+    "loop:auto": "node plugin/auto-loop-cli.js --auto"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0"
   }
 }

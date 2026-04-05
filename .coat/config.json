@@ -8,6 +8,7 @@
   },
   "claude": {
     "model": "claude-sonnet-4-6",
-    "daily_token_limit": 5000000
+    "daily_token_limit": 5000000,
+    "auto_loop": false
   }
 }
